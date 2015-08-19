@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(function(input, output){
   fluidPage(
-    titlePanel('LCG'),
+    titlePanel('Generando exponenciales'),
     sidebarPanel(
       numericInput('nsim', label = 'Número de simulaciones', value = 100, min = 1),
       numericInput('lambda', label = 'lambda', value = 1, min = 0),
