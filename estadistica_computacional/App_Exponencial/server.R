@@ -12,7 +12,7 @@ shinyServer(function(input, output){
   output$random_numbers <- renderDataTable(data.frame(rnd = d()))
   output$random_hist <- renderPlot(qplot(d()) + xlim(input$range[1], input$range[2]))
   output$random_plot <- renderPlot(
-    qplot(d()[-input$nsim], d()[-1])
+    qplot(d()[-input$nsim], d()[-1]) + geom_smooth() 
   )
   output$c <- renderText(input$c)
 })
