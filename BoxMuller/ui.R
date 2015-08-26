@@ -5,8 +5,6 @@ shinyUI(function(input, output){
     titlePanel('Generando exponenciales'),
     sidebarPanel(
       numericInput('nsim', label = 'Número de simulaciones', value = 1000, min = 1),
-      numericInput('mu', label = 'Media (mu)', value = 0),
-      numericInput('sigma', label = 'Desviación estándar (sigma)', value = 1, min = 0),
       sliderInput('seed', label = 'Semilla', value = 5, min = 1, max = 2^16 - 1),
       checkboxInput('smooth', 'Tendencia', value = 1),
       checkboxInput('dens', 'Densidad', value = 0)
