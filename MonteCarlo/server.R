@@ -40,7 +40,7 @@ int_trap_mult <- function(f, a, b, N=20){
 # (erf(sqrt(2)))^n
 
 
-shinyServer(function(input, output){
+shinyServer(function(input, output, session){
   I_trap <- reactive({
     sapply(1:input$N, function(k){
       int_trap_mult(fun, rep(input$a[1],input$n), rep(input$a[2],input$n), k)
@@ -65,7 +65,7 @@ shinyServer(function(input, output){
       lower[i] <- I[i] - s[i]/sqrt(i)*qnorm(1 - input$alpha/2, 0, 1)
       upper[i] <- I[i] + s[i]/sqrt(i)*qnorm(1 - input$alpha/2, 0, 1)
     }
-    out <- data.frame(I_MC=I, lower=lower, upper=upper, sd=s, true = erf(sqrt(2))^input$n)
+    out <- data.frame(I_MC=I, lower=ifelse(lower > -0.1, lower, -0.1), upper=ifelse(upper < 1.1, upper, 1.1), sd=s, true = erf(sqrt(2))^input$n)
     out
   })
   
@@ -83,25 +83,39 @@ shinyServer(function(input, output){
     if(all(input$a == c(-2,2))){
       p <- p + geom_line(aes(y=true), color='red', size=1, linetype='dashed')
     }
-#     p + ylim(min(I_MC()[1:4], na.rm = T), max(I_MC()[1:4], na.rm = T))
-    p + ylim(0,1) + labs(x='Número de simulaciones/puntos',
-                         y='I',
-                         title='Estimación del valor de la integral')
+    p +
+      ylim(-0.1,1.1) +
+      labs(x='Número de simulaciones/puntos',
+           y='I',
+           title='Estimación del valor de la integral')
   })
   output$errplot <- renderPlot({
     if(all(input$a == c(-2,2))){
       p <- ggplot(data(), aes(x=nsim)) +
         geom_line(aes(y=abs(I_trap-true)), color='blue', size=1) +
         geom_line(aes(y=abs(I_MC-true)), color='black', size=1) +
-        geom_line(aes(y=true-true), color='red', linetype='dashed')
+        geom_line(aes(y=true-true), color='red', linetype='dashed') +
+        labs(x='Número de simulaciones/puntos',
+             y='Error absoluto',
+             title='Error de las estimaciones')
     }else{
       p <- ggplot(data(), aes(nsim, I_MC)) +
         geom_line(alpha=0)
     }
-    p + ylim(0,1)
+    p +
+      ylim(0,1) 
   })
   output$data <- renderDataTable(round(data(), 3))
   output$data <- renderDataTable(round(data(), 3))
+  
+  observeEvent(input$reset_input, {
+    updateNumericInput(session, "n", value = 1)
+    updateSliderInput(session, "N", value = 50)
+    updateSliderInput(session, "a", value = c(-2,2))
+    updateSliderInput(session, "alpha", value = 0.05)
+    updateNumericInput(session, "seed", value = 1234)
+    updateCheckboxInput(session, "ribbon", value = TRUE)
+  })
   
 })
 
