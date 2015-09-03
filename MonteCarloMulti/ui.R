@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(function(input, output){
   fluidPage(
-    titlePanel('Integración Trapezoidal vs. Integración MonteCarlo'),
+    titlePanel('Integración Trapezoidal vs. Integración MonteCarlo: Versión multidimensional'),
     sidebarPanel(
       numericInput('n', label = 'Dimensión de la normal multivariada', value = 1, min = 1, max = 5),
       sliderInput('N', label = 'Número de puntos/simulaciones por dimensión', value = 50, min = 1, max = 200, step = 1),

@@ -3,66 +3,7 @@ library(ggplot2)
 library(dplyr)
 library(pracma)
 
-
-# Funciones ---------------------------------------------------------------
-
-fun <-  function(x){
-  n <- length(x)
-  (2*pi)^(-n/2)*exp(-0.5*sum(x*x))
-}
-
-
-int_trap <- function(fx, a, b){
-  N <- length(fx)
-  (b - a)/2*mean(fx[-N] + fx[-1])
-}
-
-int_trap_mult <- function(f, a, b, N=20){
-  n <- length(a)
-  x <- seq(a[1], b[1], l=N)
-  if(n <= 1){
-    fx <- sapply(x, f)
-  } else{
-    fx <- numeric(N)
-    for(i in 1:length(x)){
-      g <- function(y){
-        f(c(x[i], y))
-      }
-      fx[i] <- int_trap_mult(g, a[-1], b[-1], N=N)
-    }
-  }
-  I <- int_trap(fx, a[1], b[1])
-  return(I)
-}
-
-int_riem <- function(fx, a, b){
-  N <- length(fx)
-  (b - a)*mean(fx)
-}
-
-int_riem_mult <- function(f, a, b, N=20){
-  n <- length(a)
-  x <- seq(a[1], b[1], l=N)
-  if(n <= 1){
-    fx <- sapply(x, f)
-  } else{
-    fx <- numeric(N)
-    for(i in 1:length(x)){
-      g <- function(y){
-        f(c(x[i], y))
-      }
-      fx[i] <- int_riem_mult(g, a[-1], b[-1], N=N)
-    }
-  }
-  #   print(x)
-  #   print(fx)
-  I <- int_riem(fx, a[1], b[1])
-  return(I)
-}
-
-# int_trap_mult(fun, rep(-2,n), rep(2,n), N=1100)
-# (erf(sqrt(2)))^n
-
+source('funciones.R')
 
 shinyServer(function(input, output, session){
   
@@ -71,13 +12,11 @@ shinyServer(function(input, output, session){
       int_riem_mult(fun, rep(input$a[1],input$n), rep(input$a[2],input$n), k)
     })
   })
-  
   I_trap <- reactive({
     sapply(1:input$N, function(k){
       int_trap_mult(fun, rep(input$a[1],input$n), rep(input$a[2],input$n), k)
     })
   })
-  
   I_MC <- reactive({
     phi <- function(x){
       as.numeric(all(x >= input$a[1] & x <= input$a[2]))
@@ -99,7 +38,6 @@ shinyServer(function(input, output, session){
     out <- data.frame(I_MC=I, lower=ifelse(lower > -0.1, lower, -0.1), upper=ifelse(upper < 1.1, upper, 1.1), sd=s, true = erf(sqrt(2))^input$n)
     out
   })
-  
   data <- reactive({
     cbind(nsim=1:length(I_trap()), I_riem=I_riem(), I_trap=I_trap(), I_MC())
   })
@@ -153,7 +91,6 @@ shinyServer(function(input, output, session){
   })
   output$data <- renderDataTable(round(data(), 3))
   output$data <- renderDataTable(round(data(), 3))
-  
   
   observeEvent(input$reset_input, {
     updateNumericInput(session, "n", value = 1)

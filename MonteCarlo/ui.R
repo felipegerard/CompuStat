@@ -24,7 +24,7 @@ shinyUI(function(input, output){
                  h5(textOutput('estim_riem')),
                  h5(textOutput('estim_trap')),
                  h5(textOutput('estim_MC')),
-                 plotOutput('plot', width = '8in', height = '3in')
+                 plotOutput('plot', width = '9in', height = '6in')
 #                  plotOutput('errplot', width = '8in', height = '3in')
         ),
         tabPanel('Data', dataTableOutput('data'))

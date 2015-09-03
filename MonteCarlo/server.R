@@ -4,76 +4,7 @@ library(dplyr)
 library(pracma)
 library(parallel)
 
-
-# Funciones ---------------------------------------------------------------
-
-fun <-  function(x, fun=1){
-  if(fun == 1){
-    ret <- sqrt(4 - x^2)
-  }else if(fun == 2){
-    ret <- 4/(1 + x^2)
-  }else if(fun == 3){
-    ret <- 6/sqrt(4 - x^2)
-  }else if(fun == 4){
-    n <- length(x)
-    ret <- (2*pi)^(-n/2)*exp(-0.5*sum(x*x))
-  }
-  ret
-}
-
-int_trap <- function(fx, a, b){
-  N <- length(fx)
-  (b - a)/2*mean(fx[-N] + fx[-1])
-}
-
-int_trap_mult <- function(f, a, b, N=20){
-  n <- length(a)
-  x <- seq(a[1], b[1], l=N)
-  if(n <= 1){
-    fx <- sapply(x, f)
-  } else{
-    fx <- numeric(N)
-    for(i in 1:length(x)){
-      g <- function(y){
-        f(c(x[i], y))
-      }
-      fx[i] <- int_trap_mult(g, a[-1], b[-1], N=N)
-    }
-  }
-  #   print(x)
-  #   print(fx)
-  I <- int_trap(fx, a[1], b[1])
-  return(I)
-}
-
-int_riem <- function(fx, a, b){
-  N <- length(fx)
-  (b - a)*mean(fx)
-}
-
-int_riem_mult <- function(f, a, b, N=20){
-  n <- length(a)
-  x <- seq(a[1], b[1], l=N)
-  if(n <= 1){
-    fx <- sapply(x, f)
-  } else{
-    fx <- numeric(N)
-    for(i in 1:length(x)){
-      g <- function(y){
-        f(c(x[i], y))
-      }
-      fx[i] <- int_riem_mult(g, a[-1], b[-1], N=N)
-    }
-  }
-  #   print(x)
-  #   print(fx)
-  I <- int_riem(fx, a[1], b[1])
-  return(I)
-}
-
-# int_trap_mult(fun, rep(-2,n), rep(2,n), N=1100)
-# (erf(sqrt(2)))^n
-
+source('funciones.R')
 
 shinyServer(function(input, output, session){
   
@@ -85,7 +16,6 @@ shinyServer(function(input, output, session){
     }, mc.cores=input$mc.cores) %>%
       unlist
   })
-  
   I_trap <- reactive({
     print(input$fun)
     f <- function(x) fun(x, fun=input$fun)
@@ -94,7 +24,6 @@ shinyServer(function(input, output, session){
     }, mc.cores=input$mc.cores) %>%
       unlist
   })
-  
   I_MC <- reactive({
     set.seed(input$seed)
     I <- numeric(input$N)
@@ -113,7 +42,6 @@ shinyServer(function(input, output, session){
     out <- data.frame(I_MC=I, lower=lower, upper=upper, sd=s)
     out
   })
-  
   data <- reactive({
     cbind(nsim=1:length(I_trap()), I_riem=I_riem(), I_trap=I_trap(), I_MC())
   })
