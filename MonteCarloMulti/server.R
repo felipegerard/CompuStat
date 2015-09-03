@@ -2,24 +2,15 @@ library(shiny)
 library(ggplot2)
 library(dplyr)
 library(pracma)
-library(parallel)
 
 
 # Funciones ---------------------------------------------------------------
 
-fun <-  function(x, fun=1){
-  if(fun == 1){
-    ret <- sqrt(4 - x^2)
-  }else if(fun == 2){
-    ret <- 4/(1 + x^2)
-  }else if(fun == 3){
-    ret <- 6/sqrt(4 - x^2)
-  }else if(fun == 4){
-    n <- length(x)
-    ret <- (2*pi)^(-n/2)*exp(-0.5*sum(x*x))
-  }
-  ret
+fun <-  function(x){
+  n <- length(x)
+  (2*pi)^(-n/2)*exp(-0.5*sum(x*x))
 }
+
 
 int_trap <- function(fx, a, b){
   N <- length(fx)
@@ -40,8 +31,6 @@ int_trap_mult <- function(f, a, b, N=20){
       fx[i] <- int_trap_mult(g, a[-1], b[-1], N=N)
     }
   }
-  #   print(x)
-  #   print(fx)
   I <- int_trap(fx, a[1], b[1])
   return(I)
 }
@@ -78,39 +67,36 @@ int_riem_mult <- function(f, a, b, N=20){
 shinyServer(function(input, output, session){
   
   I_riem <- reactive({
-    print(input$fun)
-    f <- function(x) fun(x, fun=input$fun)
-    mclapply(1:input$N, function(k){
-      int_riem_mult(f, input$a, input$b, k)
-    }, mc.cores=input$mc.cores) %>%
-      unlist
+    sapply(1:input$N, function(k){
+      int_riem_mult(fun, rep(input$a[1],input$n), rep(input$a[2],input$n), k)
+    })
   })
   
   I_trap <- reactive({
-    print(input$fun)
-    f <- function(x) fun(x, fun=input$fun)
-    mclapply(1:input$N, function(k){
-      int_trap_mult(f, input$a, input$b, k)
-    }, mc.cores=input$mc.cores) %>%
-      unlist
+    sapply(1:input$N, function(k){
+      int_trap_mult(fun, rep(input$a[1],input$n), rep(input$a[2],input$n), k)
+    })
   })
   
   I_MC <- reactive({
-    set.seed(input$seed)
+    phi <- function(x){
+      as.numeric(all(x >= input$a[1] & x <= input$a[2]))
+    }
     I <- numeric(input$N)
-    indicadorax <- I
+    phix <- I
     lower <- I
     upper <- I
     s <- I
-    x <- runif(input$N, input$a, input$b)
-    fx <- (input$b - input$a)*sapply(x, function(x) fun(x, fun=input$fun))
-    I <- cumsum(fx)/1:length(fx)
-    s <- mclapply(1:input$N, function(i) sd(fx[1:i]), mc.cores = input$mc.cores) %>% unlist
+    set.seed(input$seed)
     for(i in 1:input$N){
+      x <- rnorm(input$n, 0, 1)
+      phix[i] <- phi(x)
+      s[i] <- sd(phix[1:i])
+      I[i] <- mean(phix[1:i])
       lower[i] <- I[i] - s[i]/sqrt(i)*qnorm(1 - input$alpha/2, 0, 1)
       upper[i] <- I[i] + s[i]/sqrt(i)*qnorm(1 - input$alpha/2, 0, 1)
     }
-    out <- data.frame(I_MC=I, lower=lower, upper=upper, sd=s)
+    out <- data.frame(I_MC=I, lower=ifelse(lower > -0.1, lower, -0.1), upper=ifelse(upper < 1.1, upper, 1.1), sd=s, true = erf(sqrt(2))^input$n)
     out
   })
   
@@ -139,19 +125,40 @@ shinyServer(function(input, output, session){
     if(input$ribbon){
       p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), fill='black', alpha=0.5)
     }
+    if(all(input$a == c(-2,2))){
+      p <- p + geom_line(aes(y=true), color='red', size=1, linetype='dashed')
+    }
     p +
+      ylim(-0.1,1.1) +
       labs(x='Número de simulaciones/puntos',
            y='I',
            title='Estimación del valor de la integral')
   })
+  output$errplot <- renderPlot({
+    if(all(input$a == c(-2,2))){
+      p <- ggplot(data(), aes(x=nsim)) +
+        geom_line(aes(y=abs(I_riem-true)), color='green', size=1) +
+        geom_line(aes(y=abs(I_trap-true)), color='blue', size=1) +
+        geom_line(aes(y=abs(I_MC-true)), color='black', size=1) +
+        geom_line(aes(y=true-true), color='red', linetype='dashed') +
+        labs(x='Número de simulaciones/puntos',
+             y='Error absoluto',
+             title='Error de las estimaciones')
+    }else{
+      p <- ggplot(data(), aes(nsim, I_MC)) +
+        geom_line(alpha=0)
+    }
+    p +
+      ylim(0,1) 
+  })
+  output$data <- renderDataTable(round(data(), 3))
+  output$data <- renderDataTable(round(data(), 3))
   
-  output$data <- renderDataTable(round(data(), 3))
-  output$data <- renderDataTable(round(data(), 3))
   
   observeEvent(input$reset_input, {
+    updateNumericInput(session, "n", value = 1)
     updateSliderInput(session, "N", value = 50)
-    updateSliderInput(session, "a", value = 0)
-    updateSliderInput(session, "b", value = 2)
+    updateSliderInput(session, "a", value = c(-2,2))
     updateSliderInput(session, "alpha", value = 0.05)
     updateNumericInput(session, "seed", value = 1234)
     updateCheckboxInput(session, "ribbon", value = TRUE)
