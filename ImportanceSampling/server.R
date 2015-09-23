@@ -23,18 +23,29 @@ mc.intervals <- function(phi, N, rg=runif, fg=dunif, alpha=0.05, mc.cores=4){
   return(ldply(results) %>% mutate(i = row_number()))
 }
 
-f <- function(x) dunif(x,-1,1)
-rf <- function(n) runif(n,-1,1)
-g1 <- function(x) dnorm(x,0,1)
-rg1 <- function(n) rnorm(n,0,1)
-g2 <- function(x) dnorm(x,0,4)
-rg2 <- function(n) rnorm(n,0,4)
-g3 <- function(x) dnorm(x,-1,1)
-rg3 <- function(n) rnorm(n,-1,1)
-g4 <- function(x) dnorm(x,0,0.3)
-rg4 <- function(n) rnorm(n,0,0.3)
+ind <- function(x) (x > -1 & x < 1)
+gen_r <- function(n, f){
+  out <- f(n)
+  for(i in 1:n){
+    while(!ind(out[i])){
+      out[i] <- f(1)
+    }
+  }
+  out
+}
 
-gs <- list(list(f,rf),list(g1,rg1),list(g2,rg2),list(g3,rg3),list(g4,rg4))
+g0 <- function(x) dunif(x,-1,1)*ind(x)
+rg0 <- function(n) gen_r(n, function(n) runif(n,-1,1))
+g1 <- function(x) dnorm(x,0,1)*ind(x)
+rg1 <- function(n) gen_r(n, function(n) rnorm(n,0,1))
+g2 <- function(x) dnorm(x,0,4)*ind(x)
+rg2 <- function(n) gen_r(n, function(n) rnorm(n,0,4))
+g3 <- function(x) dnorm(x,-1,1)*ind(x)
+rg3 <- function(n) gen_r(n, function(n) rnorm(n,-1,1))
+g4 <- function(x) dnorm(x,0,0.3)*ind(x)
+rg4 <- function(n) gen_r(n, function(n) rnorm(n,0,0.3))
+
+gs <- list(list(g0,rg0),list(g1,rg1),list(g2,rg2),list(g3,rg3),list(g4,rg4))
 
 shinyServer(function(input, output, session){
   
@@ -44,10 +55,9 @@ shinyServer(function(input, output, session){
     phi <- function(x){
       input$k / (1 + abs(x)^input$m)
     }
-    phif <- function(x) f(x)*phi(x)
     i <- as.numeric(input$g1)
     g <- gs[[i]]
-    mc.intervals(phif, N(), g[[2]], g[[1]], alpha = 0.05, mc.cores = 4)
+    mc.intervals(phi, N(), g[[2]], g[[1]], alpha = 0.05, mc.cores = 4)
   })
   output$mc_data <- renderDataTable(mc())
   output$mc_plot <- renderPlot(
@@ -60,10 +70,9 @@ shinyServer(function(input, output, session){
     phi <- function(x){
       input$k / (1 + abs(x)^input$m)
     }
-    phif <- function(x) f(x)*phi(x)
     i <- as.numeric(input$g2)
     g <- gs[[i]]
-    mc.intervals(phif, N(), g[[2]], g[[1]], alpha = 0.05, mc.cores = 4)
+    mc.intervals(phi, N(), g[[2]], g[[1]], alpha = 0.05, mc.cores = 4)
   })
   output$is_data <- renderDataTable(is())
   output$is_plot <- renderPlot(
@@ -81,25 +90,14 @@ shinyServer(function(input, output, session){
     phi <- function(x){
       input$k / (1 + abs(x)^input$m)
     }
-    phif <- function(x) f(x)*phi(x)
     gg1 <- gs[[as.numeric(input$g1)]][[1]]
     gg2 <- gs[[as.numeric(input$g2)]][[1]]
     par(mfrow=c(2,2))
-    plot(gg1, xlim=c(-2,2))
-    plot(gg2, xlim=c(-2,2))
-    plot(phi, xlim=c(-2,2))
-    plot(phif, xlim=c(-2,2))
+    plot(gg1, xlim=c(-2,2), ylab='g1(x)')
+    plot(gg2, xlim=c(-2,2), ylab='g1(x)')
+    plot(phi, xlim=c(-2,2), ylab='phi(x)')
     par(mfrow=c(1,1))
   })
     
 })
-
-
-
-
-
-
-
-
-
 
