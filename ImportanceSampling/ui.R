@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(function(input, output){
   fluidPage(
-    titlePanel('Integración Trapezoidal vs. Integración MonteCarlo'),
+    titlePanel('Importance Sampling'),
     sidebarPanel(
       sliderInput('N', 'Número de simulaciones',
                   value = 50, min = 1, max = 1000, step = 1),
