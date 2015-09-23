@@ -3,6 +3,7 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 library(parallel)
+library(triangle)
 
 mc.intervals <- function(phi, N, rg=runif, fg=dunif, alpha=0.05, mc.cores=4){
   # N puede ser un vector
@@ -34,18 +35,20 @@ gen_r <- function(n, f){
   out
 }
 
-g0 <- function(x) dunif(x,-1,1)*ind(x)
-rg0 <- function(n) gen_r(n, function(n) runif(n,-1,1))
-g1 <- function(x) dnorm(x,0,1)*ind(x)
-rg1 <- function(n) gen_r(n, function(n) rnorm(n,0,1))
-g2 <- function(x) dnorm(x,0,4)*ind(x)
-rg2 <- function(n) gen_r(n, function(n) rnorm(n,0,4))
-g3 <- function(x) dnorm(x,-1,1)*ind(x)
-rg3 <- function(n) gen_r(n, function(n) rnorm(n,-1,1))
-g4 <- function(x) dnorm(x,0,0.3)*ind(x)
-rg4 <- function(n) gen_r(n, function(n) rnorm(n,0,0.3))
+g0 <- function(x) dunif(x,-1,1)
+rg0 <- function(n) runif(n,-1,1)
+g1 <- function(x) dnorm(x,0,1)
+rg1 <- function(n) rnorm(n,0,1)
+g2 <- function(x) dnorm(x,0,4)
+rg2 <- function(n) rnorm(n,0,4)
+g3 <- function(x) dnorm(x,-1,1)
+rg3 <- function(n) rnorm(n,-1,1)
+g4 <- function(x) dnorm(x,0,0.3)
+rg4 <- function(n) rnorm(n,0,0.3)
+g5 <- function(x) dtriangle(x,-1,1,0)
+rg5 <- function(n) rtriangle(n,-1,1,0)
 
-gs <- list(list(g0,rg0),list(g1,rg1),list(g2,rg2),list(g3,rg3),list(g4,rg4))
+gs <- list(list(g0,rg0),list(g1,rg1),list(g2,rg2),list(g3,rg3),list(g4,rg4),list(g5,rg5))
 
 shinyServer(function(input, output, session){
   
@@ -53,7 +56,7 @@ shinyServer(function(input, output, session){
   N <- reactive(rep(input$n, input$N))
   mc <- reactive({
     phi <- function(x){
-      input$k / (1 + abs(x)^input$m)
+      ind(x)*input$k / (1 + abs(x)^input$m)
     }
     i <- as.numeric(input$g1)
     g <- gs[[i]]
@@ -68,7 +71,7 @@ shinyServer(function(input, output, session){
   
   is <- reactive({
     phi <- function(x){
-      input$k / (1 + abs(x)^input$m)
+      ind(x)*input$k / (1 + abs(x)^input$m)
     }
     i <- as.numeric(input$g2)
     g <- gs[[i]]
@@ -83,19 +86,45 @@ shinyServer(function(input, output, session){
   
   output$hist <- renderPlot({
     dat <- rbind(cbind(method='x ~ g1',mc()), cbind(method='x ~ g2',is()))
-    ggplot(dat, aes(Estimate, fill=method)) +
-      geom_density(alpha=0.5)
+    int <- rbind(
+      data.frame(LI=quantile(mc()$Estimate, 0.05),
+                 mean=mean(mc()$Estimate),
+                 UI=quantile(mc()$Estimate, 0.975),
+                 method='x ~ g1'),
+      data.frame(LI=quantile(is()$Estimate, 0.025),
+                 mean=mean(is()$Estimate),
+                 UI=quantile(is()$Estimate, 0.975),
+                 method='x ~ g2')
+    )
+    ggplot(dat) +
+      geom_density(aes(Estimate, fill=method), alpha=0.5) +
+      geom_vline(data=int, aes(xintercept=LI, color=method),
+                 linetype='dashed', size=1) +
+      geom_vline(data=int, aes(xintercept=mean, color=method), size=1) +
+      geom_vline(data=int, aes(xintercept=UI, color=method),
+                 linetype='dashed', size=1)
+  })
+  output$sims <- renderPlot({
+    dat_mc <- mc() %>% mutate(i = row_number(), method='x ~ g1')
+    dat_is <- is() %>% mutate(i = row_number(), method='x ~ g2')
+    dat <- rbind(dat_mc, dat_is)
+    ggplot(dat) +
+      geom_ribbon(aes(i,ymin=LI,ymax=UI, fill=method), alpha=0.5) +
+      geom_line(aes(i,Estimate)) +
+      facet_wrap(~method, nrow = 2)
   })
   output$func <- renderPlot({
     phi <- function(x){
       input$k / (1 + abs(x)^input$m)
     }
+    phi_trunc <- function(x) phi(x)*ind(x)
     gg1 <- gs[[as.numeric(input$g1)]][[1]]
     gg2 <- gs[[as.numeric(input$g2)]][[1]]
     par(mfrow=c(2,2))
-    plot(gg1, xlim=c(-2,2), ylab='g1(x)')
-    plot(gg2, xlim=c(-2,2), ylab='g1(x)')
-    plot(phi, xlim=c(-2,2), ylab='phi(x)')
+    plot(gg1, xlim=c(-3,3), ylab='g1(x)')
+    plot(gg2, xlim=c(-3,3), ylab='g1(x)')
+    plot(phi, xlim=c(-3,3), ylab='phi(x)')
+    plot(phi_trunc, xlim=c(-3,3), ylab='phi(x)*I(0,1)(x)')
     par(mfrow=c(1,1))
   })
     
