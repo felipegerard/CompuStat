@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(function(input, output){
   fluidPage(
-    titlePanel('Importance Sampling: Integrando phi(x) = k/(1 + |x|^m)'),
+    titlePanel(withMathJax('$$\\text{Importance Sampling: Integrando } \\phi(x) = \\frac{k}{1 + |x|^m)} \\text{ de -1 a 1}$$')),
     sidebarPanel(
       sliderInput('N', 'Número de simulaciones',
                   value = 50, min = 1, max = 1000, step = 1),
