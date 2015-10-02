@@ -3,7 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[spanish]{babel}
-\usepackage{amsmath}
+\usepackage{amsmath,url}
 
 \newcommand\LL{\mathcal{L}}
 
@@ -42,31 +42,21 @@ que se distribuye aproximadamente como $\hat\theta$. Si obtenemos $B$ remuestras
 
 \section*{Comparación}
 
-La comparación teórica de ambos tipos de intervalos es compleja y requiere muchos antecedentes teóricos. En esta sección daremos una breve intuición de lo que sucede. Uno de los problemas que puede tener usar los intervalos normales es que, dependiendo de la distribución de $\varphi(X)$, $\hat\theta$ podría tardar más o menos en converger a una normal y en general es difícil saber si es el caso o no. El problema es aún más grave cuando $N$ no es muy grande (por ejemplo, en el caso de un fenómeno donde es difícil muestrear o donde es muy caro simular de $f$).
+La comparación teórica de ambos tipos de intervalos es compleja y requiere muchos antecedentes teóricos. En esta sección daremos una breve intuición de lo que sucede. Uno de los problemas que puede tener usar los intervalos normales es que, dependiendo de la distribución de $\varphi(X)$, $\hat\theta$ podría tardar más o menos en converger a una normal y en general es difícil saber cuándo. El problema es aún más grave cuando $N$ no es muy grande (por ejemplo, en el caso de un fenómeno donde es difícil muestrear o donde es muy caro simular de $f$). En contraste con el método asintótico, lo único que requiere bootstrap para funcionar bien es que $\LL$ sea razonablemente representativa, es decir, que $\hat{F} \approx F$, donde $F$ es la distribución asociada a $f$ y $\hat{F}$ es la distribución empírica obtenida de $\LL$.
 
-En contraste con el método asintótico, lo único que requiere bootstrap para funcionar bien es que $\LL$ sea razonablemente representativa, es decir, que $\hat{F} \approx F$, donde $F$ es la distribución asociada a $f$ y $\hat{F}$ es la distribución empírica obtenida de $\LL$. Además, 
+El factor peligroso de los intervalos normales asintóticos es que, cuando la distribución del estadístico converge por un lado (p. ej. cuando $\hat\theta$ se distribuye en realidad como una $\chi^2$), aunque converja en el límite, los intervalos estarán consistentemente sesgados y afectarán los resultados a menos que la muestra sea realmente grande. Este hecho puede hacer que, en la práctica, los intervalos no tengan la cobertura que deberían, hecho particularmente riesgoso en fenómenos con mucho sesgo. Una ventaja de bootstrap en este caso es que los intervalos que propone \emph{no están sesgados}, sino que se aproximan más y más a los reales cuando $\hat{F}_{\hat\theta} \rightarrow F_{\hat\theta}$. Además de ello, se puede construir los intervalos bootstrap de varias maneras, por ejemplo si se quiere garantizar que sean simétricos.
 
-Una manera de ver que los intervalos asintóticos no siempre son adecuados es en experimentos artificiales en los que se conoce la verdadera distribución de $\hat\theta$
+Otra ventaja es que bootstrap utiliza una sola estimación y no dos para obtener los intervalos. Esto se debe a que para usar el teorema asintótico, como no se conoce $\sigma_{\varphi(X)}^2$, se utiliza $S_{\varphi(X)}^2$. Es decir, se estima la varianza y luego se obtienen los intervalos (cuantiles) de una aproximación asintótica a la distribución. En contraste, en bootstrap únicamente se estima $\hat{F}_{\hat\theta}$ a partir de $\LL$ y se utilizan sus cuantiles para estimar los reales.
 
-
-
-
-
-
-
-
-
-
-
-
+Una manera de ver que los intervalos asintóticos no siempre son adecuados es en experimentos artificiales en los que se conoce la verdadera distribución de $\hat\theta$. Otra alternativa que permite experimentar con funciones más complejas es aumentar progresivamente el tamaño de muestra y ver si hay un sesgo sistemático de los intervalos asintóticos en comparación con la distribución normal asintótica.
 
 
 \section*{Bibliografía}
 
 DiCiccio, Thomas J.; Efron, Bradley. Bootstrap confidence intervals. 
- Statist. Sci. 11 (1996), no. 3, 189--228.
+ Statist. Sci. 11 (1996), no. 3, 189--228. URL: \url{http://projecteuclid.org/download/pdf_1/euclid.ss/1032280214}
 
-
+Hall, Peter. Bootstrap Lectures. University of California, Davis, CA, USA. URL: \url{http://anson.ucdavis.edu/~peterh/sta251}\\\url{/bootstrap-lectures-to-may-16.pdf}
 
 
 

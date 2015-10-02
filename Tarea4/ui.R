@@ -11,7 +11,7 @@ shinyUI(function(input, output){
 #       textInput('dist',
 #                 'Función para generar X, como función de n (e.g. runif(n), rgamma(n,2,3), rnorm(n,0,1))',
 #                 value = 'runif(n)'),
-      h5('Función para generar X, como función de n (e.g. runif(n), rgamma(n,2,3), rnorm(n,0,1))'),
+      h5('Función para generar X, como función de n (e.g. runif(n), rgamma(n,2,3), rnorm(n,0,1), rweibull(n,0.5,1))'),
       tags$textarea(id = 'dist', rows = 5, cols=30,
 "a <- runif(n)
 ifelse(a < 0.1,
