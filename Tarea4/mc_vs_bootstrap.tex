@@ -40,8 +40,13 @@ que se distribuye aproximadamente como $\hat\theta$. Si obtenemos $B$ remuestras
 [q^B_{\alpha/2},\; q^B_{1 - \alpha/2}]
 \]
 
-\section*{Comparación teórica}
+\section*{Comparación}
 
+La comparación teórica de ambos tipos de intervalos es compleja y requiere muchos antecedentes teóricos. En esta sección daremos una breve intuición de lo que sucede. Uno de los problemas que puede tener usar los intervalos normales es que, dependiendo de la distribución de $\varphi(X)$, $\hat\theta$ podría tardar más o menos en converger a una normal y en general es difícil saber si es el caso o no. El problema es aún más grave cuando $N$ no es muy grande (por ejemplo, en el caso de un fenómeno donde es difícil muestrear o donde es muy caro simular de $f$).
+
+En contraste con el método asintótico, lo único que requiere bootstrap para funcionar bien es que $\LL$ sea razonablemente representativa, es decir, que $\hat{F} \approx F$, donde $F$ es la distribución asociada a $f$ y $\hat{F}$ es la distribución empírica obtenida de $\LL$. Además, 
+
+Una manera de ver que los intervalos asintóticos no siempre son adecuados es en experimentos artificiales en los que se conoce la verdadera distribución de $\hat\theta$
 
 
 
