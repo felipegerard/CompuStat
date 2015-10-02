@@ -3,6 +3,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[spanish]{babel}
+\usepackage{amsmath}
+
+\newcommand\LL{\mathcal{L}}
 
 
 \title{Intervalos de confianza: MonteCarlo vs. Bootstrap}
@@ -15,9 +18,29 @@
 
 \section*{Antecedentes}
 
-Cuando se estima una cantidad de interés, es importante conocer la precisión del estimador que se está utilizando. Supongamos que tenemos una variable aleatoria $X \sim f$ y queremos conocer $\theta = E[\varphi(X)]$. Dependiendo de la información con la que contemos, podemos recurrir a diversos métodos. En particular, si conocemos $f$ y podemos simular de ella, podemos utilizar MonteCarlo. Si, por otra parte, no conocemos $f$ pero tenemos una muestra aleatoria $X_1, \dots, X_n$ de $f$, entonces podemos utilizar bootstrap.
+Cuando se estima una cantidad de interés, es importante conocer la precisión del estimador que se está utilizando. Cuando la distribución es conocida (o parecida a una conocida), se puede hacer supuestos y calcular explícitamente la distribución del estimador, de donde se puede obtener intervalos de confianza. Sin embargo, cuando es desconocida, usualmente se recurre a propiedades asintóticas de los estimadores. En particular, se supone que el estimador ``ya convergió'' a una normal (por el TCL) y se utilizan los intervalos de confianza asociados a una normal. La pregunta es entonces si esto es una buena idea o si hay algún método para obtener intervalos de mejor calidad. En este trabajo compararemos los intervalos asintóticos contra los obtenidos con remuestreo bootstrap.
 
-En ambos métodos se puede calcular intervalos de confianza para las estimaciones. En este trabajo intentaremos dar información sobre la calidad de ambas.
+\section*{Planteamiento}
+
+Supongamos que tenemos una variable aleatoria $X \sim f$, de la cual queremos conocer $\theta = E[\varphi(X)]$. Supongamos que tenemos una muestra aleatoria $\LL = \{X_1, \dots, X_N\}$ de $X$ y que vamos a estimar $\theta$ con $\hat\theta = \hat\theta(\LL)$. Aludiendo a Montecarlo, tendríamos
+\[
+\hat\theta = \frac{1}{N} \sum_{i=1}^N \varphi(X_i)
+	\rightarrow N(\theta, \sigma_{\varphi(X)}^2/N)
+\]
+De este modo, si estimamos $\theta$ con $\hat\theta$ y $\sigma_{\varphi(X)}^2$ con la varianza muestral $S_{\varphi(X)}^2$, entonces el intervalo de confianza asintótico aproximado para $\theta$ es
+\[
+\hat\theta \pm S_{\varphi(X)}/\sqrt{N}
+\]
+Ahora bien, otra forma de obtener intervalos es utilizando remuestreo bootstrap. Para ello, en lugar de utilizar una muestra real de $X$ pero con una distribución aproximadamente normal para $\hat\theta$, el enfoque es obtener una muestra aproximada de $\hat\theta$ y utilizar la distribución real (de la muestra aproximada) para obtener los intervalos. Una remuestra bootstrap de $\LL$ es una muestra con reemplazo de tamaño $N$, $\LL_b = \{X^b_1, \dots, X^b_N\}$, de la cual podemos obtener
+\[
+\hat\theta_b = \frac{1}{N} \sum_{i=1}^N \varphi(X^b_i),
+\]
+que se distribuye aproximadamente como $\hat\theta$. Si obtenemos $B$ remuestras bootstrap, tendremos una muestra aleatoria $\hat\LL_\theta = \{\hat\theta_1, \dots, \hat\theta_B\}$ que aproxima la verdadera distribución de $\hat\theta$. Podemos obtener por ejemplo los intervalos de confianza empíricos simples con significancia $1 - \alpha$:
+\[
+[q^B_{\alpha/2},\; q^B_{1 - \alpha/2}]
+\]
+
+\section*{Comparación teórica}
 
 
 
@@ -33,8 +56,10 @@ En ambos métodos se puede calcular intervalos de confianza para las estimacione
 
 
 
+\section*{Bibliografía}
 
-
+DiCiccio, Thomas J.; Efron, Bradley. Bootstrap confidence intervals. 
+ Statist. Sci. 11 (1996), no. 3, 189--228.
 
 
 
