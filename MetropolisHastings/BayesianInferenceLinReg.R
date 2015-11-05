@@ -50,7 +50,7 @@ cppFunction('
     for(int j=0; j<p; j++){
       logprior += R::dnorm(theta[j], 0.0, 100, true); // Aquí la inicial!!
     }
-    logprior += R::dexp(sigma, 0.1, true);
+    logprior += R::dgamma(sigma, 5.0, 0.01, true);
     // Log of target density
     return lkh + logprior;
 }')
@@ -116,7 +116,7 @@ thinning <- 15
 pts <- seq(1, nsim-burnin, by=thinning)
 # OBS: thinning IS actually useful here
 estims <- estims[pts, ]
-estims_sigma <- estims_sigma[pts, ]
+estims_sigma <- estims_sigma[pts]
 par(mfrow=c(3,2))
 for(i in 1:4){
   acf(estims[ , i])
@@ -141,8 +141,8 @@ lines(density(estims_sigma), col="darkblue", lwd="2")
 par(mfrow=c(1,1))
 
 # Pointwise estimations of coefficients
-betahat <- sapply(1:(ncol(x)+1), function(i) mean(estims[,i]))
-betasd <- sapply(1:(ncol(x)+1), function(i) sd(estims[,i]))
+betahat <- apply(estims, 2, mean)
+betasd <- apply(estims, 2, sd)
 sigmahat <- mean(estims_sigma)
 sigmasd <- sd(estims_sigma)
 
