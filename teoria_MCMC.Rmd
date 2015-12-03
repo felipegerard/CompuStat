@@ -1,0 +1,36 @@
+---
+title: "Tarea"
+author: "Felipe Gerard"
+date: "18 de noviembre de 2015"
+output: pdf_document
+---
+
+### ¿Por qué Gibbs es un caso particular de M-H?
+
+Gibbs se puede ver como un caso particular de M-H tomando en cuenta la siguiente función de propuesta:
+
+Si estamos en la iteración t-ésima y hay $p$ parámetros, definimos $i = (t \; mod \; p)$ y proponemos $X \sim q$, con $q(X | \theta^{t}) = p_{\theta_i}(X | \theta^{t}_{-i})$, donde $\theta_{-i} = (\theta_1, \dots, \theta_{i-1}, \theta_{i+1}, \dots, \theta_p)$. Para ello evidentemente necesitamos conocer las condicionales de cada parámetro con respecto a los demás, como se requiere en Gibbs. Cabe mencionar que, como $X_{-i} = \theta^t_{-i}$, entonces la probabilidad de aceptación de la propuesta es 1:
+
+$$
+\frac{p(X) q(\theta^t | X)}{p(\theta_t) q(X | \theta^t)} =
+  \frac{p(X_{-i}) p(X_i | X_{-i}) p_{\theta_i}(\theta^t_i | X_{-i})}
+  {p(\theta^t_{-i}) p(\theta^t_i | \theta^t_{-i}) p_{\theta_i}(X_i | \theta^t_{-i})} =
+  \frac{p(\theta^t_{-i}) p(X_i | \theta^t_{-i}) p_{\theta_i}(\theta^t_i | \theta^t_{-i})}
+  {p(\theta^t_{-i}) p(\theta^t_i | \theta^t_{-i}) p_{\theta_i}(X_i | \theta^t_{-i})} =
+  1
+$$
+
+
+### Método para detectar convergencia en MCMC de Gelman y Rubin
+
+La idea es correr $m$ cadenas con valores iniciales dispersos y comparar la media de las varianzas $W = \frac{1}{m} \sum_j s^2_j$ y $n$ por la varianza de las medias $B = \frac{n}{m-1} \sum_j (\bar{X}_j - \bar{\bar{X}})$. Podemos estimar la varianza "real" con un promedio de ambas cantidades vía $\hat{Var}(X) = (1 - 1/n)W + (1/n)B$.
+
+Para probar convergencia se busca que la estadística $\hat{R} = \sqrt{\hat{Var}(X)/W}$ sea cercana a 1. La idea es que en cadenas que se mezclan lentamente, $\hat{Var}(X)$, será grande porque los valores iniciales fueron muy distintos, mientras que $W$ tenderá a atinarle. De este modo, cuando sean "similares" (digamos $\hat{R} < 1.1$), podemos decir que la cadena "convergió".
+
+
+
+
+
+
+
+
