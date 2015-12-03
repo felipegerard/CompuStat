@@ -83,8 +83,8 @@ plot(logliks, type='l')
 x <- data[list.depend]
 
 # Parámetros
-nboot <- 20
-maxiter <- 50
+nboot <- 50
+maxiter <- 200
 tol <- 5*1e-6
 
 # Bootstrap
@@ -93,7 +93,10 @@ res <- mclapply(mc.cores = 8, 1:nboot, function(k){
   xx <- x[idx, ]
   xi <- imputar(xx, maxiter=maxiter, tol=tol, verbose = T)$x
   mod <- glm(y ~ ., data = cbind(xi, y), family = binomial(link='logit'))
-  list(beta=coef(mod), yhat=predict(mod, newdata = xi))
+  phat <- predict(mod, newdata = xi)
+  yhat <- round(phat)
+  acc <- mean(y == yhat)
+  list(beta=coef(mod), phat=phat, yhat=yhat, acc=acc)
 })
 
 # Juntamos las betas de todas las muestras bootstrap en un data.frame
@@ -112,6 +115,9 @@ ggplot(long, aes(val)) +
   geom_bar() +
   facet_wrap(~var, scales = 'free_x')
 
+accs <- res %>%
+  sapply(function(q) q$acc)
+qplot(accs)
 
 # Resultado final
 beta.mu <- apply(betas, 2, mean)
@@ -124,15 +130,16 @@ format(round(data.frame(Estimate=beta.mu,
 
 
 phat <- res %>%
-  sapply(function(q) q$yhat)
+  sapply(function(q) q$phat)
 phat <- phat[,!apply(phat, 2, function(x) any(is.na(x)))] %>%
   apply(1, mean)
 
-yhat <- round(phat)
+yhat <- as.numeric(round(phat))
 
 table(yhat, y)
-
-
+mean(y == yhat)
+y
+yhat
 
 
 
