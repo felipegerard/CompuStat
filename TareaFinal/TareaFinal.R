@@ -21,7 +21,7 @@ labels <- paste(names(data), attributes(data)$var.labels, sep=": ") # NOMBRES DE
 
 y <- data$reg # INDICADORA DE SI SE ES O NO UNA DEMOCRACIA
 list.depend <- c("level", "open", "g", "strikes", "govpwt", "ls", "invpwt",
-                 "fertil", "lfagric", "popg", "femsec", "EnergProd") # VARIABLES ECON?MICAS EXPLICATIVAS
+                 "fertil", "lfagric", "popg", "femsec", "EnergProd") # VARIABLES ECONOMICAS EXPLICATIVAS
 
 
 
@@ -83,8 +83,8 @@ plot(logliks, type='l')
 x <- data[list.depend]
 
 # Parámetros
-nboot <- 50
-maxiter <- 200
+nboot <- 100
+maxiter <- 300
 tol <- 5*1e-6
 
 # Bootstrap
@@ -142,6 +142,13 @@ y
 yhat
 
 
+# PCA
+xi <- imputar(x, maxiter=300, tol=2*1e-6, verbose = T)$x
+cor(xi)
+pc <- prcomp(xi)
+summary(pc)
+qplot(pc$x[,'PC1'], pc$x[,'PC2'], color=y, size=2)
+# Evidentemente sobreajustamos muchísimo con 10 variables más
 
 
 
